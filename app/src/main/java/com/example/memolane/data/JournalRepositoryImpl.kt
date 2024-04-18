@@ -32,12 +32,4 @@ class JournalRepositoryImpl(
         return journalDao.getJournalById(journalId)
     }
 
-    override suspend fun getBackgroundImage(journalId: Long): ByteArray? {
-        return journalDao.getBackgroundImage(journalId)
-    }
-
-    override suspend fun updateBackgroundImage(journalId: Long, imageData: ByteArray) {
-        journalDao.updateBackgroundImage(journalId, imageData)
-    }
-
 }

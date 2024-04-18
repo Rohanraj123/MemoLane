@@ -11,7 +11,4 @@ interface JournalRepository {
     fun getJournals(): Flow<List<Journal>>
     suspend fun getJournalById(journalId: Long): Journal
 
-    /* Operations for image adding functionality */
-    suspend fun getBackgroundImage(journalId: Long): ByteArray?
-    suspend fun updateBackgroundImage(journalId: Long, imageData: ByteArray)
 }

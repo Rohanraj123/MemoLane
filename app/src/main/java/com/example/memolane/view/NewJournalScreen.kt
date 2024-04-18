@@ -54,7 +54,6 @@ import com.example.memolane.data.Journal
 import com.example.memolane.ui.theme.ButtonColor
 import com.example.memolane.ui.theme.LightGrey
 import com.example.memolane.viewmodel.MyViewModel
-import com.example.memolane.viewmodel.REQUEST_SELECT_CODE
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -62,17 +61,14 @@ import java.io.IOException
 @Composable
 fun NewJournalScreen(
     myViewModel: MyViewModel,
-    navController: NavHostController,
-    journal: Journal
+    navController: NavHostController
 ) {
-
     var textValue = remember{ mutableStateOf("") }
     val dataTime = System.currentTimeMillis()
     val content = textValue.value
+    val backgroundImageUrl = ""
     val soundTrackUrl = ""
-    val backgroundImageUrl = myViewModel.getBackgroundImage(journalId = journal.id)
     val journal = Journal(0, dataTime, content, backgroundImageUrl, soundTrackUrl)
-
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -83,9 +79,7 @@ fun NewJournalScreen(
             onValueChange = {textValue.value = it},
             onSaveJournal = { myViewModel.saveJournal(journal) },
             myViewModel,
-            navController,
-            backgroundImageUrl,
-            journal
+            navController
         )
     }
 }
@@ -125,39 +119,8 @@ fun Header(
 fun Header2(
     myViewModel: MyViewModel,
     onSaveJournal: () -> Unit,
-    navController: NavHostController,
-    backgroundImage: ByteArray?,
-    journalId: Long
+    navController: NavHostController
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val requestPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted)  {
-            myViewModel.openGallery(context)
-        }
-    }
-
-    val handleImageSelection = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val data = result.data
-        myViewModel.handleImageSelectedResult(
-            activity = context as Activity,
-            requestCode = REQUEST_SELECT_CODE,
-            resultCode = result.resultCode,
-            data = data
-        ) { byteArray ->
-            // Handle the selected image byte array here
-            if (byteArray != null) {
-                // Launch a coroutine to call updateBackgroundImage
-                coroutineScope.launch {
-                    myViewModel.updateBackgroundImage(journalId, byteArray)
-                }
-            }
-        }
-    }
 
     Row(
         modifier = Modifier.fillMaxWidth()
@@ -165,8 +128,7 @@ fun Header2(
         CustomButton(
             icon = painterResource(id = R.drawable.gallery),
             onClick = {
-                        // check permission before opening gallery
-                      myViewModel.checkPermission(context, requestPermissionLauncher)
+
             },
             modifier = Modifier.padding(10.dp)
         )
@@ -185,26 +147,6 @@ fun Header2(
             modifier = Modifier.padding(10.dp)
         )
         Spacer(modifier = Modifier.width(10.dp))
-
-        /* check if there is background image url passed */
-
-        if (backgroundImage != null) {
-            // If yes, display the image
-            Box(
-                modifier = Modifier
-                    .size(50.dp) // Adjust the size as needed
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color.LightGray)
-                    .padding(10.dp)
-            ) {
-                Image(
-                    bitmap = myViewModel.byteArrayToBitMap(byteArray = backgroundImage),
-                    contentDescription = "Background Image",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop // Adjust the content scale as needed
-                )
-            }
-        }
 
         Box(
             modifier = Modifier
@@ -252,9 +194,7 @@ fun ExpandableTextField(
     onValueChange: (String) -> Unit,
     onSaveJournal: () -> Unit,
     myViewModel: MyViewModel,
-    navController: NavHostController,
-    backgroundImage: ByteArray?,
-    journal: Journal
+    navController: NavHostController
 ) {
     val label: String = "Write your memories..."
     Surface(
@@ -271,9 +211,7 @@ fun ExpandableTextField(
             Header2(
                 myViewModel = myViewModel,
                 onSaveJournal = onSaveJournal,
-                navController = navController,
-                backgroundImage,
-                journal.id
+                navController = navController
             )
             Spacer(modifier = Modifier.height(5.dp))
             Divider(

@@ -30,8 +30,6 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 import javax.inject.Inject
 
-const val REQUEST_SELECT_CODE = 123
-
 @HiltViewModel
 class MyViewModel @Inject constructor(
     private val journalRepository: JournalRepository
@@ -96,77 +94,6 @@ class MyViewModel @Inject constructor(
     fun saveJournal(journal: Journal) {
         viewModelScope.launch {
             journalRepository.saveJournal(journal)
-        }
-    }
-
-    suspend fun updateBackgroundImage(journalId: Long, imageData: ByteArray) {
-        journalRepository.updateBackgroundImage(journalId, imageData)
-    }
-
-    suspend fun getBackgroundImage(journalId: Long): ByteArray? {
-        return journalRepository.getBackgroundImage(journalId)
-    }
-
-    fun byteArrayToBitMap(byteArray: ByteArray): ImageBitmap {
-        //  Convert the byte array to ByteArrayInputStream
-        val inputStream = ByteArrayInputStream(byteArray)
-        val bitmap = BitmapFactory.decodeStream(inputStream)
-        return bitmap.asImageBitmap()
-    }
-
-    fun checkPermission(context: Context, launcher: ActivityResultLauncher<String>) {
-        when {
-            Build.VERSION.SDK_INT < Build.VERSION_CODES.M -> {
-                // Versions below android 6.0 dont require runtime permission
-                openGallery(context)
-            }
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                openGallery(context)
-            }
-            else -> {
-                // Permission is not granted request it
-                launcher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-        }
-    }
-
-    fun openGallery(context: Context) {
-        val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.type = "image/*"
-        (context as? Activity)?.startActivityForResult(
-            intent,
-            REQUEST_SELECT_CODE
-        )
-    }
-
-    // onActivityResult method to handle the result of image selection
-    fun handleImageSelectedResult(
-        activity: Activity,
-        requestCode: Int = REQUEST_SELECT_CODE,
-        resultCode: Int,
-        data: Intent?,
-        onSelectImageResult: (ByteArray?) -> Unit
-    ) {
-        if (requestCode == REQUEST_SELECT_CODE && resultCode == Activity.RESULT_OK) {
-            val selectedImageUri = data?.data
-            val selectedImagePath = selectedImageUri?.let { uri ->
-                try {
-                    // Convert the selected image URI to byte array
-                    val inputStream = activity.contentResolver.openInputStream(uri)
-                    val bytes = inputStream?.readBytes()
-                    inputStream?.close()
-                    bytes
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    null
-                }
-            }
-            onSelectImageResult(selectedImagePath)
-        } else {
-            onSelectImageResult(null)
         }
     }
 }

@@ -36,11 +36,4 @@ interface JournalDao {
     @Query("SELECT * FROM journals WHERE id = :journalId")
     suspend fun getJournalById(journalId: Long): Journal
 
-    /* Get background image data by Journal ID */
-    @Query("SELECT backgroundImage FROM journals WHERE id = :journalId")
-    suspend fun getBackgroundImage(journalId: Long): ByteArray?
-
-    /* Update background image data by journal ID */
-    @Query("UPDATE journals SET backgroundImage = :imageData WHERE id = :journalId")
-    suspend fun updateBackgroundImage(journalId: Long, imageData: ByteArray)
 }
