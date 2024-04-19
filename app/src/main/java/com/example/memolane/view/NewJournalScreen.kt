@@ -54,21 +54,25 @@ import com.example.memolane.data.Journal
 import com.example.memolane.ui.theme.ButtonColor
 import com.example.memolane.ui.theme.LightGrey
 import com.example.memolane.viewmodel.MyViewModel
+import com.example.memolane.viewmodel.NewJournalEditScreenViewModel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.io.IOException
 
 @Composable
 fun NewJournalScreen(
-    myViewModel: MyViewModel,
-    navController: NavHostController
+    newJournalEditScreenViewModel: NewJournalEditScreenViewModel,
+    navController: NavHostController,
+    activity: Activity
 ) {
     var textValue = remember{ mutableStateOf("") }
+
     val dataTime = System.currentTimeMillis()
     val content = textValue.value
     val backgroundImageUrl = ""
     val soundTrackUrl = ""
     val journal = Journal(0, dataTime, content, backgroundImageUrl, soundTrackUrl)
+
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -77,9 +81,10 @@ fun NewJournalScreen(
         ExpandableTextField(
             text = textValue,
             onValueChange = {textValue.value = it},
-            onSaveJournal = { myViewModel.saveJournal(journal) },
-            myViewModel,
-            navController
+            onSaveJournal = { newJournalEditScreenViewModel.saveJournal(journal) },
+            newJournalEditScreenViewModel,
+            navController,
+            activity
         )
     }
 }
@@ -117,9 +122,10 @@ fun Header(
 
 @Composable
 fun Header2(
-    myViewModel: MyViewModel,
+    newJournalEditScreenViewModel: NewJournalEditScreenViewModel,
     onSaveJournal: () -> Unit,
-    navController: NavHostController
+    navController: NavHostController,
+    activity: Activity
 ) {
 
     Row(
@@ -128,8 +134,8 @@ fun Header2(
         CustomButton(
             icon = painterResource(id = R.drawable.gallery),
             onClick = {
-
-            },
+                newJournalEditScreenViewModel.onImageButtonClicked(activity)
+                      },
             modifier = Modifier.padding(10.dp)
         )
         Spacer(modifier = Modifier.width(10.dp))
@@ -193,8 +199,9 @@ fun ExpandableTextField(
     text: MutableState<String>,
     onValueChange: (String) -> Unit,
     onSaveJournal: () -> Unit,
-    myViewModel: MyViewModel,
-    navController: NavHostController
+    newJournalEditScreenViewModel: NewJournalEditScreenViewModel,
+    navController: NavHostController,
+    activity: Activity
 ) {
     val label: String = "Write your memories..."
     Surface(
@@ -209,9 +216,10 @@ fun ExpandableTextField(
             modifier = Modifier.padding(10.dp)
         ) {
             Header2(
-                myViewModel = myViewModel,
+                newJournalEditScreenViewModel = newJournalEditScreenViewModel,
                 onSaveJournal = onSaveJournal,
-                navController = navController
+                navController = navController,
+                activity
             )
             Spacer(modifier = Modifier.height(5.dp))
             Divider(

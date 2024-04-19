@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.memolane.ui.theme.MemoLaneTheme
 import com.example.memolane.view.navigation.Navigation
 import com.example.memolane.viewmodel.MyViewModel
+import com.example.memolane.viewmodel.NewJournalEditScreenViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -17,8 +18,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             MemoLaneTheme {
                 val myViewModel = hiltViewModel<MyViewModel>()
+                val newJournalEditScreenViewModel = hiltViewModel<NewJournalEditScreenViewModel>()
                 val navController = rememberNavController()
-                Navigation(navController = navController, myViewModel)
+                Navigation(
+                    navController = navController,
+                    myViewModel,
+                    newJournalEditScreenViewModel,
+                    activity = this@MainActivity
+                )
             }
         }
     }
