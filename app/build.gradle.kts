@@ -89,6 +89,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
 
     implementation("androidx.activity:activity-ktx:1.9.0")
+
+    // coil
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }
 
 kapt {

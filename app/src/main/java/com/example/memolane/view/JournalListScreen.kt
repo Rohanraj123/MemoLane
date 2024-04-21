@@ -1,5 +1,6 @@
 package com.example.memolane.view
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,7 +32,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,7 +40,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.memolane.R
 import com.example.memolane.data.Journal
 import com.example.memolane.ui.theme.ButtonColor
@@ -51,7 +53,7 @@ fun JournalListScreen(
     myViewModel: MyViewModel,
     navHostController: NavHostController
 ) {
-    val journalUiState by myViewModel.journaListUiState.collectAsState()
+    val journalUiState by myViewModel.journalListUiState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -104,13 +106,12 @@ fun JournalList(
     myViewModel: MyViewModel,
     navController: NavHostController
 ) {
-    val coroutineScope = rememberCoroutineScope()
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
         items(journals) {journal ->
             JournalCard(
-                image = journal.backgroundImageUrl,
+                image = journal.backgroundImageUrl?.toUri(),
                 soundTrackUrl = journal.soundTrackUrl,
                 content = journal.content,
                 dateTime = journal.dateTime,
@@ -125,7 +126,7 @@ fun JournalList(
 
 @Composable
 fun JournalCard(
-    image: String?,
+    image: Uri?,
     soundTrackUrl: String?,
     content: String,
     dateTime: Long,
@@ -144,6 +145,15 @@ fun JournalCard(
             modifier = Modifier.padding(16.dp)
         ) {
             if (image != null) {
+                AsyncImage(
+                    model  = image,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                )
+            } else {
                 Image(
                     painter = painterResource(id = R.drawable.mountain),
                     contentDescription = null,
@@ -155,7 +165,6 @@ fun JournalCard(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Play button for sound track
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Button(
                     onClick = { /* Play sound track */ },
@@ -165,7 +174,7 @@ fun JournalCard(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            /* Text content for journal */
+
             Text(
                 text = content,
                 style = MaterialTheme.typography.labelMedium,
@@ -173,14 +182,13 @@ fun JournalCard(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
-            /* Date and Time */
+
             Text(
                 text = dateTime.toString(),
                 style = MaterialTheme.typography.displaySmall
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            /* Edit and delete buttons */
             Row(
                 horizontalArrangement = Arrangement.End,
                 modifier = Modifier.fillMaxWidth()
@@ -210,11 +218,10 @@ fun AddButton(onClick: () -> Unit) {
             containerColor = ButtonColor
         )
     ) {
-        // Add symbol icon
         Icon(
             Icons.Default.Add,
             contentDescription = "Add",
-            tint = Color.Black // Set icon color to white
+            tint = Color.Black
         )
     }
 }

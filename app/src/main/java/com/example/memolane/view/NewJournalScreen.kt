@@ -1,10 +1,11 @@
 package com.example.memolane.view
 
 import android.app.Activity
+import android.database.Observable
+import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -30,50 +31,62 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Observer
 import androidx.navigation.NavHostController
 import com.example.memolane.R
 import com.example.memolane.data.Journal
 import com.example.memolane.ui.theme.ButtonColor
 import com.example.memolane.ui.theme.LightGrey
-import com.example.memolane.viewmodel.MyViewModel
+import com.example.memolane.util.PermissionUtil
+import com.example.memolane.viewmodel.ImageSelectionViewModel
 import com.example.memolane.viewmodel.NewJournalEditScreenViewModel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import java.io.IOException
 
 @Composable
 fun NewJournalScreen(
     newJournalEditScreenViewModel: NewJournalEditScreenViewModel,
     navController: NavHostController,
-    activity: Activity
+    activity: Activity,
+    onImageButtonClicked: () -> Unit,
+    imageSelectionViewModel: ImageSelectionViewModel
 ) {
-    var textValue = remember{ mutableStateOf("") }
+    val textValue = remember{ mutableStateOf("") }
 
     val dataTime = System.currentTimeMillis()
     val content = textValue.value
-    val backgroundImageUrl = ""
+
+    var backgroundImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    DisposableEffect(imageSelectionViewModel.selectedImageUri) {
+        val observer = Observer<Uri?> {uri ->
+            backgroundImageUri = uri
+        }
+        imageSelectionViewModel.selectedImageUri.observeForever(observer)
+        onDispose {
+            imageSelectionViewModel.selectedImageUri.removeObserver(observer)
+        }
+    }
+
+    Log.d("NewJournalScreen", "backgrounImageUri: $backgroundImageUri")
     val soundTrackUrl = ""
-    val journal = Journal(0, dataTime, content, backgroundImageUrl, soundTrackUrl)
-
-
+    val journal = Journal(0, dataTime, content, backgroundImageUri.toString(), soundTrackUrl)
+    Log.d("NewJournalScreen", "journal : $journal")
     Column(modifier = Modifier
         .fillMaxSize()
         .background(color = LightGrey)){
@@ -81,18 +94,19 @@ fun NewJournalScreen(
         ExpandableTextField(
             text = textValue,
             onValueChange = {textValue.value = it},
-            onSaveJournal = { newJournalEditScreenViewModel.saveJournal(journal) },
+            onSaveJournal = {
+                newJournalEditScreenViewModel.saveJournal(journal)
+                Log.d("OnSaveJournal", "saved journal : $journal")},
             newJournalEditScreenViewModel,
             navController,
-            activity
+            activity,
+            onImageButtonClicked
         )
     }
 }
 
 @Composable
-fun Header(
-    onClick: () -> Unit
-) {
+fun Header(onClick: () -> Unit) {
     Row (
         modifier = Modifier
             .fillMaxWidth()
@@ -125,8 +139,11 @@ fun Header2(
     newJournalEditScreenViewModel: NewJournalEditScreenViewModel,
     onSaveJournal: () -> Unit,
     navController: NavHostController,
-    activity: Activity
+    activity: Activity,
+    onImageButtonClicked: () -> Unit
 ) {
+    
+    
 
     Row(
         modifier = Modifier.fillMaxWidth()
@@ -134,24 +151,16 @@ fun Header2(
         CustomButton(
             icon = painterResource(id = R.drawable.gallery),
             onClick = {
-                newJournalEditScreenViewModel.onImageButtonClicked(activity)
-                      },
+                val isPermissionGranted = PermissionUtil.requestStoragePermission(activity)
+                if (isPermissionGranted) {
+                    onImageButtonClicked()
+                }
+            },
             modifier = Modifier.padding(10.dp)
         )
-        Spacer(modifier = Modifier.width(10.dp))
-        CustomButton(
-            icon = painterResource(id = R.drawable.camera),
-            onClick = {
 
-                      },
-            modifier = Modifier.padding(10.dp)
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-        CustomButton(
-            icon = painterResource(id = R.drawable.microphone),
-            onClick = {/*TODO*/},
-            modifier = Modifier.padding(10.dp)
-        )
+        
+
         Spacer(modifier = Modifier.width(10.dp))
 
         Box(
@@ -201,7 +210,8 @@ fun ExpandableTextField(
     onSaveJournal: () -> Unit,
     newJournalEditScreenViewModel: NewJournalEditScreenViewModel,
     navController: NavHostController,
-    activity: Activity
+    activity: Activity,
+    onImageButtonClicked: () -> Unit
 ) {
     val label: String = "Write your memories..."
     Surface(
@@ -219,7 +229,8 @@ fun ExpandableTextField(
                 newJournalEditScreenViewModel = newJournalEditScreenViewModel,
                 onSaveJournal = onSaveJournal,
                 navController = navController,
-                activity
+                activity,
+                onImageButtonClicked
             )
             Spacer(modifier = Modifier.height(5.dp))
             Divider(
@@ -245,4 +256,13 @@ fun ExpandableTextField(
             )
         }
     }
+}
+
+@Composable
+fun ImagePicker(activity: Activity) {
+    val getContent = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            println(uri)
+            Log.d("NewJournalScreen", "Uri of the resource : $uri")
+        })
 }

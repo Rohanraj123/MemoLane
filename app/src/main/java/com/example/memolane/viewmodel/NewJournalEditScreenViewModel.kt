@@ -1,7 +1,10 @@
 package com.example.memolane.viewmodel
 
 import android.app.Activity
+import android.net.Uri
 import android.widget.Toast
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.memolane.data.Journal
@@ -22,11 +25,10 @@ class NewJournalEditScreenViewModel @Inject constructor(
     private val journalRepository: JournalRepository
 ): ViewModel() {
 
-    /* UI operations starts here */
     private val _journals = MutableStateFlow<List<Journal>>(emptyList())
     val journals: StateFlow<List<Journal>> get() = _journals
 
-    val journaListUiState: StateFlow<JournalUiState> =
+    val journalListUiState: StateFlow<JournalUiState> =
         journalRepository.getJournals().map { JournalUiState(it) }
             .stateIn(
                 scope = viewModelScope,
@@ -36,39 +38,9 @@ class NewJournalEditScreenViewModel @Inject constructor(
 
     companion object { private const val TIMEOUT_MILLIS = 5_000L }
 
-    /*UI operations ends here */
-
-    /* Database operations starts here */
-
     fun saveJournal(journal: Journal) {
         viewModelScope.launch {
             journalRepository.saveJournal(journal)
         }
-    }
-
-    /* Database operations end here*/
-
-    /* Image Button Feature implementation methods */
-    fun onImageButtonClicked(activity: Activity) {
-        // Ask for the permission
-        val isPermissionGranted = PermissionUtil.requestStoragePermission(activity)
-
-        if (isPermissionGranted) {
-            // Open the storage
-            ImageUtil.openGalleryForImage(activity)
-        } else {
-            Toast.makeText(activity, "Permission denied", Toast.LENGTH_LONG).show()
-            // Just stop the process
-        }
-        // If granted then open the storage
-        // afterImageSelection()
-
-    }
-
-    fun afterImageSelection() {
-        // close the file storage
-        // move back to the new screen
-        // add the image in the place of background image
-        // after save button we will add it to the database
     }
 }

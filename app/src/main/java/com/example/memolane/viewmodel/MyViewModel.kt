@@ -1,6 +1,5 @@
 package com.example.memolane.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.memolane.data.Journal
@@ -22,7 +21,7 @@ class MyViewModel @Inject constructor(
     private val _journals = MutableStateFlow<List<Journal>>(emptyList())
     val journals: StateFlow<List<Journal>> get() = _journals
 
-    val journaListUiState: StateFlow<JournalUiState> =
+    val journalListUiState: StateFlow<JournalUiState> =
         journalRepository.getJournals().map { JournalUiState(it) }
             .stateIn(
                 scope = viewModelScope,
@@ -63,8 +62,6 @@ class MyViewModel @Inject constructor(
     suspend fun readJournal(journalId: Long): String {
         return journalRepository.readJournal(journalId)
     }
-
-
 }
 
 data class JournalUiState(val journalList: List<Journal> = listOf())
