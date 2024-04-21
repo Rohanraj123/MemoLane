@@ -1,5 +1,6 @@
 package com.example.memolane.view
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,6 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,12 +47,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.memolane.R
 import com.example.memolane.ui.theme.ButtonColor
+import com.example.memolane.ui.theme.GrayColor
 import com.example.memolane.viewmodel.MyViewModel
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.Async
 
 
 @Composable
@@ -60,26 +66,26 @@ fun EditJournalScreen(
     navBackStackEntry: NavBackStackEntry
 ) {
     val journalId = navBackStackEntry.arguments?.getString("journalId")
+    val journalUiState by myViewModel.journalListUiState.collectAsState()
+
+    val selectedJournal = journalUiState.journalList.find { it.id == journalId?.toLong() }
+    val backgroundImageUri = selectedJournal?.backgroundImageUrl?.toUri()
+
 
     Column (
         modifier = Modifier
             .fillMaxSize()
-            .background(color = LightGray)
+            .background(color = GrayColor)
     ){
-        EditJournalScreenHeader(onClick = {/*TODO*/})
+
+        EditJournalScreenHeader(onClick = {navController.popBackStack()})
+
         EditJournal(
-            image = painterResource(id = R.drawable.ic_launcher_background),
             myViewModel,
             journalId,
-            navController
+            navController,
+            backgroundImageUri
         )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-        ) {
-            Text(text = "Update Edit")
-        }
     }
 }
 
@@ -90,6 +96,7 @@ fun EditJournalScreenHeader(onClick: () -> Unit) {
             .fillMaxWidth()
             .padding(10.dp)
     ){
+
         Box(
             modifier = Modifier
                 .clip(CircleShape)
@@ -103,7 +110,9 @@ fun EditJournalScreenHeader(onClick: () -> Unit) {
                 modifier = Modifier.size(30.dp)
             )
         }
+
         Spacer(modifier = Modifier.width(16.dp))
+
         Text(
             text = "Edit Memory",
             fontWeight = FontWeight.Bold,
@@ -114,14 +123,13 @@ fun EditJournalScreenHeader(onClick: () -> Unit) {
 
 @Composable
 fun EditJournal(
-    image: Painter,
     myViewModel: MyViewModel,
     journalId: String?,
-    navController: NavHostController
+    navController: NavHostController,
+    uri: Uri?
 ) {
 
     val coroutineScope = rememberCoroutineScope()
-
     var journalContent by remember(journalId) { mutableStateOf("") }
 
     LaunchedEffect(journalId) {
@@ -131,88 +139,68 @@ fun EditJournal(
         }
     }
 
-    Surface (
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp),
-        shadowElevation = 4.dp,
-        tonalElevation = 4.dp,
-        color = Color.White,
-        shape = RoundedCornerShape(10.dp)
-    ) {
-        Column(modifier = Modifier.padding(10.dp)) {
-            Box(modifier = Modifier) {
-                Icon(Icons.Default.Clear, contentDescription = null)
-                Image(
-                    painter = image,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxWidth()
+    Column(modifier = Modifier.fillMaxSize()) {
+        Surface (
+            modifier = Modifier
+                .weight(1f)
+                .padding(10.dp),
+            shadowElevation = 4.dp,
+            tonalElevation = 4.dp,
+            color = Color.White,
+            shape = RoundedCornerShape(10.dp)
+        ) {
+
+            Column(modifier = Modifier.padding(10.dp)) {
+
+                AsyncImage(
+                    model = uri,
+                    contentDescription = null
                 )
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-            Box(modifier = Modifier) {
-                Icon(Icons.Default.Clear, contentDescription = null)
-                Row(modifier = Modifier
-                    .width(300.dp)
-                    .padding(start = 50.dp)
-                    .background(color = LightGray)
-                    .clip(RoundedCornerShape(10.dp)),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Box(
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Box(modifier = Modifier) {
+
+                    BasicTextField(
+                        value = journalContent,
+                        onValueChange = { journalContent = it },
+                        singleLine = false,
+                        textStyle = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier
-                            .clip(RoundedCornerShape(30.dp))
-                            .background(color = Color.White)
-                    ) {
-                        Icon(Icons.Default.PlayArrow, contentDescription = null,
-                            modifier = Modifier.size(50.dp))
-                    }
-                    Text(text = "00:12",
-                        modifier = Modifier.padding(10.dp),
-                        color = Color.Gray
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.vertical_bars),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(50.dp)
-                            .padding(2.dp)
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        minLines = 30,
+                        maxLines = Int.MAX_VALUE
                     )
                 }
+                Spacer(modifier = Modifier.height(18.dp))
             }
-            Box(modifier = Modifier) {
-                BasicTextField(
-                    value = journalContent,
-                    onValueChange = { journalContent = it },
-                    singleLine = false,
-                    textStyle = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    minLines = 30,
-                    maxLines = Int.MAX_VALUE
-                )
-                Button(
-                    onClick = { coroutineScope.launch {
-                        if (journalId != null) {
+        }
 
-                            val journal = myViewModel.getJournalById(journalId.toLong())
-                            journal.content = journalContent
-                            myViewModel.editJournal(journal)
-                            navController.navigate("journal_list_screen")
-                            {popUpTo("edit_journal_screen") {inclusive = true} }
+        Button(
+            onClick = { coroutineScope.launch {
 
-                        }
-                    } },
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ButtonColor,
-                        contentColor = Color.Black
-                    )
-                ) {
-                    Text(text = "Update the change")
+                if (journalId != null) {
+                    val journal = myViewModel.getJournalById(journalId.toLong())
+                    journal.content = journalContent
+                    myViewModel.editJournal(journal)
+                    navController.navigate("journal_list_screen")
+                    { popUpTo("edit_journal_screen") { inclusive = true } }
                 }
-            }
+            } },
+
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .padding(start = 10.dp, end = 10.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Black,
+                contentColor = Color.White
+            ),
+
+            ) {
+            Text(text = "Save Changes")
         }
     }
 }
+

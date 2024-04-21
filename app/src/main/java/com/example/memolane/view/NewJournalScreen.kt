@@ -6,8 +6,11 @@ import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,14 +27,18 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +48,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.LightGray
+import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,13 +59,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Observer
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.memolane.R
 import com.example.memolane.data.Journal
 import com.example.memolane.ui.theme.ButtonColor
+import com.example.memolane.ui.theme.GrayColor
 import com.example.memolane.ui.theme.LightGrey
 import com.example.memolane.util.PermissionUtil
 import com.example.memolane.viewmodel.ImageSelectionViewModel
 import com.example.memolane.viewmodel.NewJournalEditScreenViewModel
+import kotlinx.coroutines.android.awaitFrame
 
 @Composable
 fun NewJournalScreen(
@@ -70,37 +82,41 @@ fun NewJournalScreen(
 
     val dataTime = System.currentTimeMillis()
     val content = textValue.value
-
+    val soundTrackUrl = ""
     var backgroundImageUri by remember { mutableStateOf<Uri?>(null) }
+    Log.d("NewJournalScreen", "backgroundImageUri : $backgroundImageUri")
 
-    DisposableEffect(imageSelectionViewModel.selectedImageUri) {
+    DisposableEffect(backgroundImageUri) {
         val observer = Observer<Uri?> {uri ->
             backgroundImageUri = uri
         }
+
         imageSelectionViewModel.selectedImageUri.observeForever(observer)
         onDispose {
             imageSelectionViewModel.selectedImageUri.removeObserver(observer)
         }
     }
 
-    Log.d("NewJournalScreen", "backgrounImageUri: $backgroundImageUri")
-    val soundTrackUrl = ""
+
+
     val journal = Journal(0, dataTime, content, backgroundImageUri.toString(), soundTrackUrl)
-    Log.d("NewJournalScreen", "journal : $journal")
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(color = LightGrey)){
-        Header(onClick = {})
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = GrayColor)
+    ){
+        Header(onClick = {navController.popBackStack()})
         ExpandableTextField(
             text = textValue,
             onValueChange = {textValue.value = it},
             onSaveJournal = {
-                newJournalEditScreenViewModel.saveJournal(journal)
-                Log.d("OnSaveJournal", "saved journal : $journal")},
+                newJournalEditScreenViewModel.saveJournal(journal)},
             newJournalEditScreenViewModel,
             navController,
             activity,
-            onImageButtonClicked
+            onImageButtonClicked,
+            backgroundImageUri = backgroundImageUri
         )
     }
 }
@@ -142,47 +158,53 @@ fun Header2(
     activity: Activity,
     onImageButtonClicked: () -> Unit
 ) {
-    
-    
 
-    Row(
-        modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(30.dp))
+            .background(GrayColor)
     ) {
-        CustomButton(
-            icon = painterResource(id = R.drawable.gallery),
-            onClick = {
-                val isPermissionGranted = PermissionUtil.requestStoragePermission(activity)
-                if (isPermissionGranted) {
-                    onImageButtonClicked()
-                }
-            },
-            modifier = Modifier.padding(10.dp)
-        )
 
-        
-
-        Spacer(modifier = Modifier.width(10.dp))
-
-        Box(
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
-                .clickable {
+                .padding(5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            CustomButton(
+                icon = painterResource(id = R.drawable.gallery),
+                onClick = {
+                    val isPermissionGranted = PermissionUtil.requestStoragePermission(activity)
+                    if (isPermissionGranted) {
+                        onImageButtonClicked()
+                    }
+                },
+                modifier = Modifier.padding(10.dp)
+            )
+
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(start = 10.dp, end = 5.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black,
+                    contentColor = Color.White
+                ),
+                onClick = {
                     onSaveJournal()
                     navController.navigate("journal_list_screen")
                 }
-                .clip(RoundedCornerShape(10.dp))
-                .background(color = ButtonColor)
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "SAVE",
-                color = Color.Black,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Center)
-            )
+            ) {
+                Text(
+                    text = "SAVE",
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
+
     }
 }
 
@@ -196,10 +218,14 @@ fun CustomButton(
         modifier = Modifier
             .clickable { onClick() }
             .clip(CircleShape)
-            .background(color = LightGray)
+            .background(color = White)
             .then(modifier)
     ) {
-        Icon(painter = icon, contentDescription = null, modifier = Modifier.size(30.dp))
+        Icon(
+            painter = icon,
+            contentDescription = null,
+            modifier = Modifier.size(30.dp)
+        )
     }
 }
 
@@ -211,16 +237,19 @@ fun ExpandableTextField(
     newJournalEditScreenViewModel: NewJournalEditScreenViewModel,
     navController: NavHostController,
     activity: Activity,
-    onImageButtonClicked: () -> Unit
+    onImageButtonClicked: () -> Unit,
+    backgroundImageUri: Uri?
 ) {
     val label: String = "Write your memories..."
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp),
         shadowElevation = 4.dp,
         tonalElevation = 4.dp,
-        shape = RoundedCornerShape(10.dp)
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White
     ) {
         Column(
             modifier = Modifier.padding(10.dp)
@@ -238,6 +267,34 @@ fun ExpandableTextField(
                     .fillMaxWidth()
                     .padding(10.dp)
             )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(width = 1.dp, color = Color.Black),
+                contentAlignment = Alignment.Center
+            ) {
+                Log.d("Composable", "backgroundUri $backgroundImageUri")
+                if (backgroundImageUri != null) {
+                    AsyncImage(
+                        model = backgroundImageUri,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.gallery),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
             TextField(
                 value = text.value,
                 onValueChange = onValueChange,
@@ -247,22 +304,18 @@ fun ExpandableTextField(
                 keyboardActions = KeyboardActions(
                     onDone = { /* Handle done action if needed */ }
                 ),
-                textStyle = MaterialTheme.typography.bodyMedium,
+                textStyle = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp),
                 minLines = 30,
-                maxLines = Int.MAX_VALUE
+                maxLines = Int.MAX_VALUE,
+                colors = TextFieldDefaults.colors(
+                    disabledContainerColor = Color.White,
+                    focusedContainerColor = White,
+                    unfocusedContainerColor = Color.White,
+                )
             )
         }
     }
-}
-
-@Composable
-fun ImagePicker(activity: Activity) {
-    val getContent = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent(),
-        onResult = { uri: Uri? ->
-            println(uri)
-            Log.d("NewJournalScreen", "Uri of the resource : $uri")
-        })
 }

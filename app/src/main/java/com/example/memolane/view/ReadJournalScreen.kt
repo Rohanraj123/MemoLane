@@ -1,6 +1,7 @@
 package com.example.memolane.view
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,6 +29,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,9 +44,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.memolane.R
+import com.example.memolane.data.Journal
+import com.example.memolane.ui.theme.GrayColor
 import com.example.memolane.viewmodel.MyViewModel
 
 
@@ -56,17 +62,22 @@ fun ReadJournalScreen(
     navBackStackEntry: NavBackStackEntry
 ) {
     val journalId = navBackStackEntry.arguments?.getString("journalId")
+    val journalUiState by myViewModel.journalListUiState.collectAsState()
+
+    val selectedJournal = journalUiState.journalList.find { it.id == journalId?.toLong() }
+    val backgroundImageUri = selectedJournal?.backgroundImageUrl?.toUri()
+
     Column (
         modifier = Modifier
             .fillMaxSize()
-            .background(color = LightGray)
+            .background(color = GrayColor)
     ){
-        ReadJournalScreenHeader(onClick = {/*TODO*/})
+        ReadJournalScreenHeader(onClick = {navController.popBackStack()})
         ReadJournal(
-            image = painterResource(id = R.drawable.ic_launcher_background),
             onTextChanged = {/*TODO*/},
             journalId,
-            myViewModel
+            myViewModel,
+            backgroundImageUri
         )
     }
 }
@@ -83,7 +94,7 @@ fun ReadJournalScreenHeader(onClick: () -> Unit) {
                 .clip(CircleShape)
                 .background(color = Color.White)
                 .clickable { onClick() }
-                .padding(10.dp)
+                .padding(10.dp),
         ) {
             Icon(
                 Icons.Default.KeyboardArrowLeft,
@@ -91,24 +102,23 @@ fun ReadJournalScreenHeader(onClick: () -> Unit) {
                 modifier = Modifier.size(30.dp)
             )
         }
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(40.dp))
         Text(
             text = "Read Memory",
             fontWeight = FontWeight.Bold,
             fontSize = 30.sp
         )
+
     }
 }
 
 @Composable
 fun ReadJournal(
-    image: Painter,
     onTextChanged: (String) -> Unit,
     journalId: String?,
-    myViewModel: MyViewModel
+    myViewModel: MyViewModel,
+    backgroundImageUri: Uri?
 ) {
-
-    val coroutineScope = rememberCoroutineScope()
 
     var journalContent by remember(journalId) { mutableStateOf("") }
     
@@ -129,39 +139,16 @@ fun ReadJournal(
         shape = RoundedCornerShape(10.dp)
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
-            Image(
-                painter = image,
+            AsyncImage(
+                model = backgroundImageUri,
                 contentDescription = null,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
             )
             Spacer(modifier = Modifier.height(10.dp))
-            Row(modifier = Modifier
-                .width(300.dp)
-                .padding(start = 50.dp)
-                .background(color = LightGray)
-                .clip(RoundedCornerShape(10.dp)),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(30.dp))
-                        .background(color = Color.White)
-                ) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null,
-                        modifier = Modifier.size(50.dp))
-                }
-                Text(text = "00:12",
-                    modifier = Modifier.padding(10.dp),
-                    color = Color.Gray
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.vertical_bars),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(50.dp)
-                        .padding(2.dp)
-                )
-            }
+
             BasicTextField(
                 value = journalContent,
                 onValueChange = {
@@ -169,7 +156,7 @@ fun ReadJournal(
                                 },
                 singleLine = false,
                 readOnly = true,
-                textStyle = MaterialTheme.typography.bodyMedium,
+                textStyle = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp),
