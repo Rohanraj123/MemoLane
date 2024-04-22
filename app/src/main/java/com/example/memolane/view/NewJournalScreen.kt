@@ -1,11 +1,7 @@
 package com.example.memolane.view
 
 import android.app.Activity
-import android.database.Observable
 import android.net.Uri
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,7 +34,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,8 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Black
-import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -62,13 +55,10 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.memolane.R
 import com.example.memolane.data.Journal
-import com.example.memolane.ui.theme.ButtonColor
 import com.example.memolane.ui.theme.GrayColor
-import com.example.memolane.ui.theme.LightGrey
 import com.example.memolane.util.PermissionUtil
 import com.example.memolane.viewmodel.ImageSelectionViewModel
 import com.example.memolane.viewmodel.NewJournalEditScreenViewModel
-import kotlinx.coroutines.android.awaitFrame
 
 @Composable
 fun NewJournalScreen(
@@ -84,7 +74,6 @@ fun NewJournalScreen(
     val content = textValue.value
     val soundTrackUrl = ""
     var backgroundImageUri by remember { mutableStateOf<Uri?>(null) }
-    Log.d("NewJournalScreen", "backgroundImageUri : $backgroundImageUri")
 
     DisposableEffect(backgroundImageUri) {
         val observer = Observer<Uri?> {uri ->
@@ -97,9 +86,12 @@ fun NewJournalScreen(
         }
     }
 
-
-
-    val journal = Journal(0, dataTime, content, backgroundImageUri.toString(), soundTrackUrl)
+    val journal = Journal(0,
+        dataTime,
+        content,
+        backgroundImageUri.toString(),
+        soundTrackUrl
+    )
 
     Column(
         modifier = Modifier
@@ -111,7 +103,8 @@ fun NewJournalScreen(
             text = textValue,
             onValueChange = {textValue.value = it},
             onSaveJournal = {
-                newJournalEditScreenViewModel.saveJournal(journal)},
+                newJournalEditScreenViewModel.saveJournal(journal)
+                            },
             newJournalEditScreenViewModel,
             navController,
             activity,
@@ -276,7 +269,7 @@ fun ExpandableTextField(
                     .border(width = 1.dp, color = Color.Black),
                 contentAlignment = Alignment.Center
             ) {
-                Log.d("Composable", "backgroundUri $backgroundImageUri")
+
                 if (backgroundImageUri != null) {
                     AsyncImage(
                         model = backgroundImageUri,

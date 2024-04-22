@@ -1,16 +1,9 @@
 package com.example.memolane.viewmodel
 
-import android.app.Activity
-import android.net.Uri
-import android.widget.Toast
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.memolane.data.Journal
 import com.example.memolane.data.JournalRepository
-import com.example.memolane.util.ImageUtil
-import com.example.memolane.util.PermissionUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

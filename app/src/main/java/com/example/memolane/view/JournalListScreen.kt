@@ -2,23 +2,19 @@ package com.example.memolane.view
 
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,9 +26,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -47,17 +40,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.example.memolane.R
-import com.example.memolane.data.Journal
-import com.example.memolane.ui.theme.ButtonColor
 import com.example.memolane.ui.theme.GrayColor
 import com.example.memolane.viewmodel.MyViewModel
 import java.time.Instant
@@ -71,7 +59,9 @@ fun JournalListScreen(
     myViewModel: MyViewModel,
     navHostController: NavHostController
 ) {
-    val journalUiState by myViewModel.journalListUiState.collectAsState()
+    val journalUiState by myViewModel
+        .journalListUiState
+        .collectAsState()
 
     LazyColumn(
         modifier = Modifier
@@ -88,13 +78,21 @@ fun JournalListScreen(
                 soundTrackUrl = journal.soundTrackUrl,
                 content = journal.content,
                 dateTime = journal.dateTime,
-                onEditClick = { navHostController.navigate("edit_journal_screen/${journal.id}") },
-                onDeleteClick = { myViewModel.deleteJournal(journal.id) },
-                onCardClick = { navHostController.navigate("read_journal_screen/${journal.id}") }
+                onEditClick = {
+                    navHostController.navigate("edit_journal_screen/${journal.id}")
+                              },
+                onDeleteClick = {
+                    myViewModel.deleteJournal(journal.id)
+                                },
+                onCardClick = {
+                    navHostController.navigate("read_journal_screen/${journal.id}")
+                }
             )
         }
     }
-    CustomFloatingButton { navHostController.navigate("new_journal_screen") }
+    CustomFloatingButton {
+        navHostController.navigate("new_journal_screen")
+    }
 }
 
 @Composable
@@ -140,7 +138,8 @@ fun JournalCard(
                             .ofEpochMilli(dateTime),
                             ZoneId.systemDefault())
 
-    val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy | HH:mm:ss")
+    val formatter = DateTimeFormatter
+                    .ofPattern("dd-MM-yyyy | HH:mm:ss")
 
     Card(
         modifier = Modifier
@@ -187,7 +186,9 @@ fun JournalCard(
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.DarkGray,
                 maxLines = 4,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -268,12 +269,17 @@ fun CustomFloatingButton(onClick: () -> Unit) {
             onClick = { onClick() },
             modifier = Modifier.padding(16.dp),
             containerColor = Color.Black,
-            elevation = FloatingActionButtonDefaults.elevation(
+            elevation = FloatingActionButtonDefaults
+                .elevation(
                 defaultElevation = 8.dp,
                 pressedElevation = 16.dp
             )
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
+            Icon(
+                Icons.Default.Add,
+                contentDescription = "Add",
+                tint = Color.White
+            )
         }
     }
 }

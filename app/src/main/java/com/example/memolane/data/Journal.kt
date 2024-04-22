@@ -1,6 +1,5 @@
 package com.example.memolane.data
 
-import androidx.compose.runtime.MutableState
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -10,6 +9,6 @@ data class Journal(
     val id: Long=0,
     val dateTime: Long,
     var content: String,
-    val backgroundImageUrl: String?, // Url or filepath of that image
-    val soundTrackUrl: String? // Url or file path of that image
+    val backgroundImageUrl: String?,
+    val soundTrackUrl: String?
 )

@@ -1,7 +1,8 @@
 package com.example.memolane.view.navigation
 
 import android.app.Activity
-import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -14,6 +15,7 @@ import com.example.memolane.viewmodel.ImageSelectionViewModel
 import com.example.memolane.viewmodel.MyViewModel
 import com.example.memolane.viewmodel.NewJournalEditScreenViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Navigation(
     navController: NavHostController,
@@ -34,8 +36,13 @@ fun Navigation(
             )
         }
         composable("edit_journal_screen/{journalId}") {backStackEntry ->
-            val journalId = backStackEntry.arguments?.getString("journalId")?.toLong()
-            EditJournalScreen(myViewModel, navController, backStackEntry)
+            val journalId = backStackEntry
+                .arguments
+                ?.getString("journalId")
+                ?.toLong()
+            EditJournalScreen(myViewModel,
+                                navController,
+                                backStackEntry)
         }
         composable("new_journal_screen") {
             NewJournalScreen(
@@ -47,8 +54,13 @@ fun Navigation(
             )
         }
         composable("read_journal_screen/{journalId}") {backStackEntry ->
-            val journalId = backStackEntry.arguments?.getString("journalId")?.toLong()
-            ReadJournalScreen(myViewModel, navController, backStackEntry)
+            val journalId = backStackEntry
+                .arguments
+                ?.getString("journalId")
+                ?.toLong()
+            ReadJournalScreen(myViewModel,
+                navController,
+                backStackEntry)
         }
     }
 }

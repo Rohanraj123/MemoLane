@@ -5,5 +5,4 @@ import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class MyApp: Application() {
-    /* Add custom logic if needed */
 }

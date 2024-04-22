@@ -9,7 +9,6 @@ import com.example.memolane.data.JournalRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.internal.managers.ApplicationComponentManager
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -17,7 +16,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class AppModule {
-
     @Provides
     @Singleton
     fun providesJournalDatabase(application: Application): JournalDatabase {
@@ -27,13 +25,11 @@ class AppModule {
             "journal_database"
         ).build()
     }
-
     @Provides
     @Singleton
     fun providesJournalDao(journalDatabase: JournalDatabase): JournalDao {
         return journalDatabase.journalDao
     }
-
     @Provides
     @Singleton
     fun providesJournalRepository(journalDao: JournalDao): JournalRepository {

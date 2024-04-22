@@ -1,13 +1,10 @@
 package com.example.memolane.data
 
-import android.util.Log
 import kotlinx.coroutines.flow.Flow
 
 class JournalRepositoryImpl(
     private val journalDao: JournalDao
 ): JournalRepository {
-
-
     override suspend fun saveJournal(journal: Journal) {
         journalDao.saveJournal(journal)
     }
@@ -31,5 +28,4 @@ class JournalRepositoryImpl(
     override suspend fun getJournalById(journalId: Long): Journal {
         return journalDao.getJournalById(journalId)
     }
-
 }
