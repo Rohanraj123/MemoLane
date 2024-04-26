@@ -142,7 +142,11 @@ fun EditJournal(
 
                 AsyncImage(
                     model = uri,
-                    contentDescription = null
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(16.dp))
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
