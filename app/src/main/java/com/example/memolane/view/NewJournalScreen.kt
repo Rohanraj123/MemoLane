@@ -293,9 +293,11 @@ fun ExpandableTextField(
                 onValueChange = onValueChange,
                 label = { Text(text = label)},
                 singleLine = false,
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Default),
                 keyboardActions = KeyboardActions(
-                    onDone = { /* Handle done action if needed */ }
+                    onNext = {
+                        
+                    }
                 ),
                 textStyle = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
