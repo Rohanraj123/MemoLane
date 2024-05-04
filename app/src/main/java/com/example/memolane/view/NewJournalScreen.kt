@@ -1,7 +1,9 @@
 package com.example.memolane.view
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,10 +36,13 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,32 +64,26 @@ import com.example.memolane.ui.theme.GrayColor
 import com.example.memolane.util.PermissionUtil
 import com.example.memolane.viewmodel.ImageSelectionViewModel
 import com.example.memolane.viewmodel.NewJournalEditScreenViewModel
+import kotlinx.coroutines.launch
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun NewJournalScreen(
     newJournalEditScreenViewModel: NewJournalEditScreenViewModel,
     navController: NavHostController,
     activity: Activity,
     onImageButtonClicked: () -> Unit,
-    imageSelectionViewModel: ImageSelectionViewModel
+    imageSelectionViewModel: ImageSelectionViewModel,
+    onCameraButtonClicked: () -> Unit
 ) {
     val textValue = remember{ mutableStateOf("") }
 
     val dataTime = System.currentTimeMillis()
     val content = textValue.value
     val soundTrackUrl = ""
-    var backgroundImageUri by remember { mutableStateOf<Uri?>(null) }
+    val backgroundImageUri = imageSelectionViewModel.selectedImageUri.collectAsState().value
 
-    DisposableEffect(backgroundImageUri) {
-        val observer = Observer<Uri?> {uri ->
-            backgroundImageUri = uri
-        }
-
-        imageSelectionViewModel.selectedImageUri.observeForever(observer)
-        onDispose {
-            imageSelectionViewModel.selectedImageUri.removeObserver(observer)
-        }
-    }
+    Log.d("NewJournalScreen", "backgroundUri: $backgroundImageUri")
 
     val journal = Journal(0,
         dataTime,
@@ -109,6 +108,7 @@ fun NewJournalScreen(
             navController,
             activity,
             onImageButtonClicked,
+            onCameraButtonClicked,
             backgroundImageUri = backgroundImageUri
         )
     }
@@ -149,7 +149,8 @@ fun Header2(
     onSaveJournal: () -> Unit,
     navController: NavHostController,
     activity: Activity,
-    onImageButtonClicked: () -> Unit
+    onImageButtonClicked: () -> Unit,
+    onCameraButtonClicked: () -> Unit
 ) {
 
     Box(
@@ -173,6 +174,13 @@ fun Header2(
                     if (isPermissionGranted) {
                         onImageButtonClicked()
                     }
+                },
+                modifier = Modifier.padding(10.dp)
+            )
+            CustomButton(
+                icon = painterResource(id = R.drawable.camera),
+                onClick = {
+                         onCameraButtonClicked()
                 },
                 modifier = Modifier.padding(10.dp)
             )
@@ -231,6 +239,7 @@ fun ExpandableTextField(
     navController: NavHostController,
     activity: Activity,
     onImageButtonClicked: () -> Unit,
+    onCameraButtonClicked: () -> Unit,
     backgroundImageUri: Uri?
 ) {
     val label: String = "Write your memories..."
@@ -252,7 +261,8 @@ fun ExpandableTextField(
                 onSaveJournal = onSaveJournal,
                 navController = navController,
                 activity,
-                onImageButtonClicked
+                onImageButtonClicked,
+                onCameraButtonClicked
             )
             Spacer(modifier = Modifier.height(5.dp))
             Divider(
@@ -272,7 +282,7 @@ fun ExpandableTextField(
 
                 if (backgroundImageUri != null) {
                     AsyncImage(
-                        model = backgroundImageUri,
+                        model = backgroundImageUri.toString(),
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
