@@ -23,7 +23,8 @@ fun Navigation(
     newJournalEditScreenViewModel: NewJournalEditScreenViewModel,
     activity: Activity,
     onImageButtonClicked: () -> Unit,
-    imageSelectionViewModel: ImageSelectionViewModel
+    imageSelectionViewModel: ImageSelectionViewModel,
+    onCameraButtonClicked: () -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -50,7 +51,8 @@ fun Navigation(
                 navController,
                 activity,
                 onImageButtonClicked,
-                imageSelectionViewModel
+                imageSelectionViewModel,
+                onCameraButtonClicked
             )
         }
         composable("read_journal_screen/{journalId}") {backStackEntry ->
